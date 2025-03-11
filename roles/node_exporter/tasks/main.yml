@@ -1,0 +1,89 @@
+---
+- name: Убедиться что стоят нужные пакеты
+  package:
+    name:
+      - wget
+      - tar
+    state: present
+
+- name: Саздание групппы Node Exporter
+  group:
+    name: "{{ node_exporter_group }}"
+    system: "{{ node_exporter_system_group }}"
+    state: present
+
+- name: Создание пользовтеля Node Exporter 
+  user:
+    name: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    shell: /sbin/nologin
+    system: "{{ node_exporter_system_user }}"
+    createhome: false
+
+- name: Проверка установлен ли Node Exporter
+  stat:
+    path: "{{ node_exporter_bin_dir }}/node_exporter"
+  register: node_exporter_binary
+
+- name: Загрузка Node Exporter
+  get_url:
+    url: "{{ node_exporter_download_url }}"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+  when: not node_exporter_binary.stat.exists
+
+- name: Распаковка Node Exporter
+  unarchive:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+    dest: "/tmp"
+    remote_src: yes
+    creates: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64"
+  when: not node_exporter_binary.stat.exists
+
+- name: Копирование бинарников Node Exporter
+  copy:
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: "{{ node_exporter_bin_dir }}/node_exporter"
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    mode: 0755
+    remote_src: yes
+  when: not node_exporter_binary.stat.exists
+
+- name: Копирование Node Exporter systemd service файла
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/{{ node_exporter_service_name }}.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart node_exporter
+
+- name: Запуск и включение Node Exporter
+  systemd:
+    name: "{{ node_exporter_service_name }}"
+    state: started
+    enabled: "{{ node_exporter_service_enabled }}"
+    daemon_reload: true
+
+# Обновление конфига Prometheus
+- name: Проверка на существование конфига Prometheus
+  stat:
+    path: "{{ prometheus_config_dir }}/prometheus.yml"
+  register: prometheus_config_stat
+
+- name: Чтение конфига Prometheus
+  slurp:
+    src: "{{ prometheus_config_dir }}/prometheus.yml"
+  register: prometheus_config_content
+  when: prometheus_config_stat.stat.exists
+
+- name: Вставка job node_exporter в prometheus.yml
+  blockinfile:
+    path: "{{ prometheus_config_dir }}/prometheus.yml"
+    marker: "# BEGIN NODE EXPORTER JOB ANSIBLE MANAGED BLOCK"
+    marker_end: "# END NODE EXPORTER JOB ANSIBLE MANAGED BLOCK"
+    insertafter: "^scrape_configs:"
+    block: |
+      {{ lookup('template', 'prometheus_node_exporter.yml.j2') | indent(2, first=True) }}
+  when: prometheus_config_stat.stat.exists
+  notify: reload prometheus

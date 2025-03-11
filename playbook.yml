@@ -1,0 +1,9 @@
+---
+- name: Разворачивание Prometheus и стека EFK
+  hosts: localhost
+  become: yes
+  roles:
+    - prometheus
+    - node_exporter
+    - elastic_kibana
+    - fluentbit

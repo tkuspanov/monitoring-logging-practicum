@@ -1,0 +1,19 @@
+---
+# ElasticSearch конфиги
+elasticsearch_config_dir: "/etc/elasticsearch"
+elasticsearch_data_dir: "/var/lib/elasticsearch"
+elasticsearch_log_dir: "/var/log/elasticsearch"
+elasticsearch_cluster_name: "monitoring-cluster"
+elasticsearch_node_name: "node-1"
+elasticsearch_http_port: 9200
+elasticsearch_network_host: "0.0.0.0"
+elasticsearch_discovery_seed_hosts: ["127.0.0.1"]
+elasticsearch_cluster_initial_master_nodes: ["node-1"]
+elasticsearch_bootstrap_memory_lock: false
+elasticsearch_heap_size: "512m"
+
+# Kibana конфиги
+kibana_config_dir: "/etc/kibana"
+kibana_server_port: 5601
+kibana_server_host: "0.0.0.0"
+kibana_elasticsearch_hosts: ["http://localhost:9200"]

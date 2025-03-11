@@ -1,0 +1,5 @@
+- job_name: 'node_exporter_{{ ansible_hostname }}'
+  static_configs:
+    - targets: ["{{ prometheus_target_host }}:{{ prometheus_target_port }}"]
+      labels:
+        instance: "{{ ansible_hostname }}"

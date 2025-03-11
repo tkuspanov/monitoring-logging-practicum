@@ -1,0 +1,27 @@
+[SERVICE]
+    Flush        {{ fluentbit_flush_seconds }}
+    Daemon       Off
+    Log_Level    {{ fluentbit_log_level }}
+    Parsers_File parsers/parsers.conf
+
+[INPUT]
+    Name            systemd
+    Tag             host.*
+    Systemd_Filter  _SYSTEMD_UNIT=*.service
+    Max_Entries     1000
+    Read_From_Tail  On
+
+[OUTPUT]
+    Name            es
+    Match           host.*
+    Host            {{ elasticsearch_host }}
+    Port            {{ elasticsearch_port }}
+    {% if elasticsearch_http_user != "" %}
+    HTTP_User       {{ elasticsearch_http_user }}
+    HTTP_Passwd     {{ elasticsearch_http_passwd }}
+    {% endif %}
+    Index           {{ elasticsearch_index }}
+    Logstash_Format On
+    Replace_Dots    On
+    Retry_Limit     False
+    tls             Off

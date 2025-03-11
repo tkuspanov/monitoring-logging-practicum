@@ -1,0 +1,69 @@
+---
+- name: Установить необходимые пакет
+  package:
+    name:
+      - java-11-openjdk
+    state: present
+
+- name: Добавление Elasticsearch YUM репозитория
+  yum_repository:
+    name: elasticsearch
+    description: Elasticsearch repository for 7.x packages
+    baseurl: https://artifacts.elastic.co/packages/7.x/yum
+    gpgcheck: 1
+    gpgkey: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    enabled: 1
+
+# Установка Elasticsearch
+- name: Установка Elasticsearch 
+  package:
+    name: elasticsearch
+    state: present
+
+- name: Копирование конфига Elasticsearch
+  template:
+    src: elasticsearch.yml.j2
+    dest: "{{ elasticsearch_config_dir }}/elasticsearch.yml"
+    owner: root
+    group: elasticsearch
+    mode: 0660
+  notify: restart elasticsearch
+
+- name: Настройка Elasticsearch JVM опции
+  lineinfile:
+    path: "{{ elasticsearch_config_dir }}/jvm.options.d/heap.options"
+    line: "-Xms{{ elasticsearch_heap_size }}\n-Xmx{{ elasticsearch_heap_size }}"
+    create: yes
+    owner: root
+    group: elasticsearch
+    mode: 0660
+  notify: restart elasticsearch
+
+# Устанвока Kibana
+- name: Устанвока Kibana 
+  package:
+    name: kibana
+    state: present
+
+- name: Копирование конфига Kibana
+  template:
+    src: kibana.yml.j2
+    dest: "{{ kibana_config_dir }}/kibana.yml"
+    owner: root
+    group: kibana
+    mode: 0660
+  notify: restart kibana
+
+- name: Запуск и включение Elasticsearch
+  systemd:
+    name: elasticsearch
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Запуск и включение Kibana
+  systemd:
+    name: kibana
+    state: started
+    enabled: yes
+    daemon_reload: yes

@@ -1,0 +1,17 @@
+---
+- name: restart prometheus
+  systemd:
+    name: "{{ prometheus_service_name }}"
+    state: restarted
+    daemon_reload: true
+  when: prometheus_service_enabled | bool
+
+- name: reload prometheus
+  uri:
+    url: http://localhost:9090/-/reload
+    method: POST
+    status_code: 200
+  register: reload_result
+  failed_when: reload_result.status != 200 and reload_result.status != -1
+  ignore_errors: true
+  when: prometheus_service_enabled | bool
