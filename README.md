@@ -35,11 +35,13 @@ ansible-playbook playbook.yml
 - fluentbit: настройка FluentBit для сбора логов в ElasticSearch  
 
 ## Для корректной работы нужно добавить порты в firewalld или его отключить
-sudo firewall-cmd --permanent --add-port=9090/tcp
-sudo firewall-cmd --permanent --add-port=9100/tcp
-sudo firewall-cmd --permanent --add-port=9200/tcp
-sudo firewall-cmd --permanent --add-port=9300/tcp
-sudo firewall-cmd --permanent --add-port=5601/tcp
-sudo firewall-cmd --permanent --add-port=24224/tcp
-sudo firewall-cmd --permanent --add-port=24224/udp
-sudo firewall-cmd --reload
+```sh
+- sudo firewall-cmd --permanent --add-port=9090/tcp
+- sudo firewall-cmd --permanent --add-port=9100/tcp
+- sudo firewall-cmd --permanent --add-port=9200/tcp
+- sudo firewall-cmd --permanent --add-port=9300/tcp
+- sudo firewall-cmd --permanent --add-port=5601/tcp
+- sudo firewall-cmd --permanent --add-port=24224/tcp
+- sudo firewall-cmd --permanent --add-port=24224/udp
+- sudo firewall-cmd --reload
+```
