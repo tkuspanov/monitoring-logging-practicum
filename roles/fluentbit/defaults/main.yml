@@ -6,6 +6,6 @@ fluentbit_flush_seconds: 5
 
 elasticsearch_host: "localhost"
 elasticsearch_port: 9200
-elasticsearch_http_user: "admin"
-elasticsearch_http_passwd: "admin"
+elasticsearch_http_user: ""
+elasticsearch_http_passwd: ""
 elasticsearch_index: "fluentbit"
